@@ -96,7 +96,7 @@ class MediaBridge extends Component {
     // this is one of Google's public STUN servers
     // make sure your offer/answer role does not change. If user A does a SLD
     // with type=offer initially, it must do that during  the whole session
-    this.pc = new RTCPeerConnection({iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]});
+    this.pc = new RTCPeerConnection();
     // when our browser gets a candidate, send it to the peer
     this.pc.onicecandidate = e => {
         console.log(e, 'onicecandidate');
