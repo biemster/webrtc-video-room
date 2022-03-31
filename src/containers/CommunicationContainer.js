@@ -34,8 +34,12 @@ class CommunicationContainer extends React.Component {
       this.props.media.setState({user: 'host', bridge: 'create'}));
     socket.on('full', this.full);
     socket.on('bridge', role => this.props.media.init());
-    socket.on('join', () =>
-      this.props.media.setState({user: 'guest', bridge: 'join'}));
+    socket.on('join', () => {
+      this.props.media.setState({user: 'guest', bridge: 'join'});
+      this.setState({message: 'autojoin'});
+      this.props.socket.emit('auth', this.state);
+      this.hideAuth();
+    });
     socket.on('approve', ({ message, sid }) => {
       this.props.media.setState({bridge: 'approve'});
       this.setState({ message, sid });
