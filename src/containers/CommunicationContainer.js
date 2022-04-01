@@ -43,6 +43,10 @@ class CommunicationContainer extends React.Component {
     socket.on('approve', ({ message, sid }) => {
       this.props.media.setState({bridge: 'approve'});
       this.setState({ message, sid });
+      setTimeout(() => {
+        this.props.socket.emit('accept', sid);
+        this.hideAuth();
+      }, 3000);
     });
     socket.emit('find');
     this.props.getUserMedia
