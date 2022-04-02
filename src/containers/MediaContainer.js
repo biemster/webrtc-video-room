@@ -67,6 +67,35 @@ class MediaBridge extends Component {
       };
   }
   setDescription(offer) {
+    var sdp = offer.sdp; // sdp munging
+    const re_codecs = /(m=video [0-9]* [a-zA-Z\/]*)([ 0-9]*)/;
+    const is_enforce_h264 = false; // not working on chrome
+    if(is_enforce_h264) {
+      // remove all codecs except h264
+      let codecs = sdp.match(re_codecs)[2].split(" ").splice(1);
+
+      const re_h264 = /a=rtpmap:([0-9]*) H264/g;
+      let codecs_h264 = [...sdp.matchAll(re_h264)].flat().filter((value, index, ar) => {return (index % 2 != 0)});
+
+      let codecs_toremove = codecs.filter(item => codecs_h264.indexOf(item) < 0);
+      for (var i = 0; i < codecs_toremove.length; i++) {
+        const re = new RegExp("a=.*:" + codecs_toremove[i] + " .*\n", "ig");
+        sdp = sdp.replace(re, "");
+      }
+
+      offer.sdp = sdp.replace(re_codecs, "$1 " + codecs_h264.join(" "));
+    }
+    else {
+      // make h264 default by putting it in front of the m=video line
+      const re_h264 = /a=rtpmap:([0-9]*) H264/g;
+      let codecs_h264 = [...sdp.matchAll(re_h264)].flat().filter((value, index, ar) => {return (index % 2 != 0)});
+      for (var i = 0; i < codecs_h264.length; i++) {
+        const re = new RegExp("(m=video [0-9]* [a-zA-Z\/]*)([ 0-9]*)( " + codecs_h264[i] + ")([ 0-9]*)");
+        sdp = sdp.replace(re, "$1$2$4");
+      }
+      offer.sdp = sdp.replace(re_codecs, "$1 " + codecs_h264.join(" ") + "$2");
+    }
+
     return this.pc.setLocalDescription(offer);
   }
   // send the offer to a server to be forwarded to the other peer
